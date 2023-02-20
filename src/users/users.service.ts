@@ -1,52 +1,78 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './users.model';
 
 @Injectable()
 export class UsersService {
-  private users = [
-    { id: 0, name: 'Bob' },
-    { id: 1, name: 'John' },
-  ];
+  constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
 
-  findUsers() {
-    return this.users;
+  async findUsers(): Promise<User[]> {
+    const users = await this.userModel.find({});
+
+    if (!users) {
+      throw new NotFoundException('Could not find users');
+    }
+
+    return users;
   }
 
-  findUser(id: number) {
-    const user = this.users.find((user) => user.id === id);
+  async findUser(id: string): Promise<User> {
+    const user = await this.userModel.findById(id);
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('Could not find user');
     }
 
     return user;
   }
 
-  createUser(createUserDto: CreateUserDto) {
-    const newUser = {
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
+    const newUser = new this.userModel({
       ...createUserDto,
-      id: Date.now(),
-    };
-
-    return [...this.users, newUser];
-  }
-
-  updateUser(id: number, updateUserDto: UpdateUserDto) {
-    this.users = this.users.map((user) => {
-      if (user.id === id) {
-        return { ...user, ...updateUserDto };
-      }
-
-      return user;
     });
 
-    return this.findUser(id);
+    const createdUser = await newUser.save().catch(() => {
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          error: 'Email adress already taken',
+        },
+        HttpStatus.CONFLICT,
+      );
+    });
+
+    return createdUser;
   }
 
-  removeUser(id: number) {
-    const toBeRemoved = this.findUser(id);
-    this.users = this.users.filter((user) => user.id !== id);
+  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const userToUpdate = await this.findUser(id);
+
+    userToUpdate.email = updateUserDto.email;
+
+    const updatedUser = await userToUpdate.save().catch(() => {
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          error: 'Email adress already taken',
+        },
+        HttpStatus.CONFLICT,
+      );
+    });
+
+    return updatedUser;
+  }
+
+  async removeUser(id: string): Promise<User> {
+    const toBeRemoved = await this.findUser(id);
+    toBeRemoved.delete();
 
     return toBeRemoved;
   }

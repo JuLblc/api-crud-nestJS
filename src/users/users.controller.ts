@@ -5,7 +5,6 @@ import {
   Get,
   NotFoundException,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   ValidationPipe,
@@ -24,7 +23,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  findUser(@Param('id', ParseIntPipe) id: number) {
+  findUser(@Param('id') id: string) {
     try {
       return this.usersService.findUser(id);
     } catch (err) {
@@ -39,7 +38,7 @@ export class UsersController {
 
   @Put(':id')
   updateUser(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
   ) {
     try {
@@ -50,7 +49,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  removeUser(@Param('id', ParseIntPipe) id: number) {
+  removeUser(@Param('id') id: string) {
     try {
       return this.usersService.removeUser(id);
     } catch (err) {
