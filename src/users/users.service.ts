@@ -9,13 +9,14 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './users.model';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
 
   async findUsers(): Promise<User[]> {
-    const users = await this.userModel.find({});
+    const users = await this.userModel.find({}).exec();
 
     if (!users) {
       throw new NotFoundException('Could not find users');
@@ -25,21 +26,50 @@ export class UsersService {
   }
 
   async findUser(id: string): Promise<User> {
-    const user = await this.userModel.findById(id);
+    const user = await this.userModel.findById(id).exec();
 
     if (!user) {
-      throw new NotFoundException('Could not find user');
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: `No user with email: ${id}`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return user;
+  }
+
+  async findUserByEmail(email: string): Promise<User> {
+    const user = await this.userModel.findOne({ email }).exec();
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: `No user with email: ${email}`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return user;
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
+    const hashPassword = await bcrypt.hash(createUserDto.password, 10);
+
     const newUser = new this.userModel({
-      ...createUserDto,
+      email: createUserDto.email,
+      password: hashPassword,
     });
 
-    const createdUser = await newUser.save().catch(() => {
+    const userWithSameEmail = await this.userModel
+      .findOne({ email: newUser.email })
+      .exec();
+
+    if (userWithSameEmail) {
       throw new HttpException(
         {
           status: HttpStatus.CONFLICT,
@@ -47,9 +77,9 @@ export class UsersService {
         },
         HttpStatus.CONFLICT,
       );
-    });
+    }
 
-    return createdUser;
+    return await newUser.save();
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
