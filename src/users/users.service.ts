@@ -32,7 +32,7 @@ export class UsersService {
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
-          error: `No user with email: ${id}`,
+          error: `No user with id: ${id}`,
         },
         HttpStatus.NOT_FOUND,
       );
@@ -82,12 +82,20 @@ export class UsersService {
     return await newUser.save();
   }
 
-  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const userToUpdate = await this.findUser(id);
+  async updateUser(user: User, updateUserDto: UpdateUserDto): Promise<User> {
+    const userToUpdate = await this.findUser(user._id);
+    const hashPassword = updateUserDto.password
+      ? await bcrypt.hash(updateUserDto.password, 10)
+      : user.password;
 
-    userToUpdate.email = updateUserDto.email;
+    userToUpdate.email = updateUserDto.email || user.email;
+    userToUpdate.password = hashPassword;
 
-    const updatedUser = await userToUpdate.save().catch(() => {
+    const userWithSameEmail = await this.userModel
+      .findOne({ email: userToUpdate.email })
+      .exec();
+
+    if (userWithSameEmail && userWithSameEmail.id !== user._id) {
       throw new HttpException(
         {
           status: HttpStatus.CONFLICT,
@@ -95,9 +103,9 @@ export class UsersService {
         },
         HttpStatus.CONFLICT,
       );
-    });
+    }
 
-    return updatedUser;
+    return await userToUpdate.save();
   }
 
   async removeUser(id: string): Promise<User> {

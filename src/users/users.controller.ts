@@ -7,11 +7,19 @@ import {
   Param,
   Post,
   Put,
+  Request,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
+import { AuthenticatedGuard } from 'src/auth/guard/authenticated.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { User } from './users.model';
+
+export interface CustomRequest extends Request {
+  user: User;
+}
 
 @Controller('users')
 export class UsersController {
@@ -36,13 +44,14 @@ export class UsersController {
     return this.usersService.createUser(createUserDto);
   }
 
-  @Put(':id')
+  @UseGuards(AuthenticatedGuard)
+  @Put()
   updateUser(
-    @Param('id') id: string,
+    @Request() req: CustomRequest,
     @Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
   ) {
     try {
-      return this.usersService.updateUser(id, updateUserDto);
+      return this.usersService.updateUser(req.user, updateUserDto);
     } catch (err) {
       throw new NotFoundException();
     }
