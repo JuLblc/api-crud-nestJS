@@ -11,11 +11,11 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { AuthenticatedGuard } from 'src/auth/guard/authenticated.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { User } from './users.model';
+import { AuthenticatedGuard } from '../auth/guard/authenticated.guard';
 
 export interface CustomRequest extends Request {
   user: User;

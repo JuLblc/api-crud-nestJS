@@ -5,7 +5,7 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { AuthenticatedGuard } from 'src/auth/guard/authenticated.guard';
+import { AuthenticatedGuard } from '../auth/guard/authenticated.guard';
 import { ProductsService } from './products.service';
 
 @Controller('products')
