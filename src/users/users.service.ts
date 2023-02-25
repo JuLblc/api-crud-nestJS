@@ -16,7 +16,7 @@ export class UsersService {
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
 
   async findUsers(): Promise<User[]> {
-    const users = await this.userModel.find({}).exec();
+    const users = await this.userModel.find({});
 
     if (!users) {
       throw new NotFoundException('Could not find users');
@@ -26,7 +26,7 @@ export class UsersService {
   }
 
   async findUser(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.userModel.findById(id);
 
     if (!user) {
       throw new HttpException(
@@ -42,7 +42,7 @@ export class UsersService {
   }
 
   async findUserByEmail(email: string): Promise<User> {
-    const user = await this.userModel.findOne({ email }).exec();
+    const user = await this.userModel.findOne({ email });
 
     if (!user) {
       throw new HttpException(
@@ -65,9 +65,9 @@ export class UsersService {
       password: hashPassword,
     });
 
-    const userWithSameEmail = await this.userModel
-      .findOne({ email: newUser.email })
-      .exec();
+    const userWithSameEmail = await this.userModel.findOne({
+      email: newUser.email,
+    });
 
     if (userWithSameEmail) {
       throw new HttpException(
@@ -79,7 +79,8 @@ export class UsersService {
       );
     }
 
-    return await newUser.save();
+    await newUser.save();
+    return newUser;
   }
 
   async updateUser(user: User, updateUserDto: UpdateUserDto): Promise<User> {
@@ -91,11 +92,11 @@ export class UsersService {
     userToUpdate.email = updateUserDto.email || user.email;
     userToUpdate.password = hashPassword;
 
-    const userWithSameEmail = await this.userModel
-      .findOne({ email: userToUpdate.email })
-      .exec();
+    const userWithSameEmail = await this.userModel.findOne({
+      email: userToUpdate.email,
+    });
 
-    if (userWithSameEmail && userWithSameEmail.id !== user._id) {
+    if (userWithSameEmail && userWithSameEmail._id !== user._id) {
       throw new HttpException(
         {
           status: HttpStatus.CONFLICT,
@@ -105,11 +106,23 @@ export class UsersService {
       );
     }
 
-    return await userToUpdate.save();
+    await userToUpdate.save();
+    return userToUpdate;
   }
 
   async removeUser(id: string): Promise<User> {
     const toBeRemoved = await this.findUser(id);
+
+    if (!toBeRemoved) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: `No user with id: ${id}`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     toBeRemoved.delete();
 
     return toBeRemoved;

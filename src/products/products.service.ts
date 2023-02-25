@@ -30,7 +30,7 @@ interface Product {
   };
 }
 
-type ApiResponse = {
+export type ApiResponse = {
   product: Product;
 };
 @Injectable()
