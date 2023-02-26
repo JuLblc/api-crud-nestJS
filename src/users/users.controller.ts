@@ -57,6 +57,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthenticatedGuard)
   @Delete(':id')
   removeUser(@Param('id') id: string) {
     try {

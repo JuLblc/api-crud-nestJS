@@ -96,7 +96,7 @@ export class UsersService {
       email: userToUpdate.email,
     });
 
-    if (userWithSameEmail && userWithSameEmail._id !== user._id) {
+    if (userWithSameEmail && userWithSameEmail.id !== user._id) {
       throw new HttpException(
         {
           status: HttpStatus.CONFLICT,

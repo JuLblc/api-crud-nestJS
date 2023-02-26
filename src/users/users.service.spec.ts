@@ -153,7 +153,7 @@ describe('UsersService', () => {
 
     it('should throw an HttpException if email is already taken', async () => {
       const userWithSameEmail = {
-        _id: '61438b0dece65a729bfbc152',
+        id: '61438b0dece65a729bfbc152',
         email: 'email@email.com',
         password: '$2b$10$q.v/',
       };
