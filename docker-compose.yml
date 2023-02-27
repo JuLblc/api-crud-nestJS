@@ -1,0 +1,50 @@
+version: '3.3'
+
+services:
+  dev:
+    container_name: crud-nestjs_api_dev
+    image: nestjs-api-dev:1.0.0
+    build:
+      context: .
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 3000:3000
+      - 9229:9229
+    environment:
+      MONGODB_URI: 'mongodb+srv://innovorder:innovorder@cluster0.vup2r.mongodb.net/api-crud-nest-js'
+    command: npm run start:dev
+    networks:
+      - nestjs-network
+    depends_on:
+      - mongo
+  prod:
+    container_name: crud-nestjs_api_prod
+    image: nestjs-api-prod:1.0.0
+    build:
+      context: .
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 3000:3000
+      - 9229:9229
+    environment:
+      MONGODB_URI: 'mongodb+srv://innovorder:innovorder@cluster0.vup2r.mongodb.net/api-crud-nest-js'
+    command: npm run start:prod
+    networks:
+      - nestjs-network
+    depends_on:
+      - mongo
+  mongo:
+    container_name: mongodb
+    image: mongo
+    ports:
+      - 27017:27017
+    networks:
+      - nestjs-network
+    restart: always
+
+networks:
+  nestjs-network:
