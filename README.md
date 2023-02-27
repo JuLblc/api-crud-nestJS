@@ -1,5 +1,9 @@
 # Get Started
 
+## Technical test instruction
+
+https://github.com/InnovOrder/software-technical-tests/tree/master/crud-nestjs
+
 ## Installation
 
 ```bash
@@ -18,10 +22,30 @@ MONGODB_URI=mongodb+srv://innovorder:innovorder@cluster0.vup2r.mongodb.net/api-c
 SESSION_SECRET=your-session-secret
 ```
 
-## Running the app
+## Running the app locally
 
 ```bash
+# watch mode
 $ npm run start:dev
+
+# production mode
+$ npm run start:prod
+```
+
+## Running the Docker containers
+
+```bash
+cd your-path/api-crud-nestJS
+```
+
+```bash
+docker-compose up dev
+```
+
+or
+
+```bash
+docker-compose up prod
 ```
 
 # Routes
